@@ -61,7 +61,7 @@ bool Gpio::exportGpio()
         return false;
     }
 
-    size_t len = snprintf(buf, sizeof(buf), "%d", m_gpio);
+    int len = snprintf(buf, sizeof(buf), "%d", m_gpio);
     write(fd, buf, len);
     close(fd);
 
@@ -78,7 +78,7 @@ bool Gpio::unexportGpio()
         //qDebug() << "ERROR: could not open /sys/class/gpio/unexport";
         return false;
     }
-    size_t len = snprintf(buf, sizeof(buf), "%d", m_gpio);
+    int len = snprintf(buf, sizeof(buf), "%d", m_gpio);
     write(fd, buf, len);
     close(fd);
 
@@ -126,21 +126,13 @@ bool Gpio::setDirection(int dir)
         return false;
     }
     if(dir == INPUT){
-        if(write(fd, "in", 3) != 3){
-            qDebug() << "ERROR: could not set edge interrupt";
-            close(fd);
-            return false;
-        }
+        write(fd, "in", 3);
         m_dir = INPUT;
         close(fd);
         return true;
     }
     if(dir == OUTPUT){
-        if(write(fd, "out", 4) != 4){
-            qDebug() << "ERROR: could not set edge interrupt";
-            close(fd);
-            return false;
-        }
+        write(fd, "out", 4);
         m_dir = OUTPUT;
         close(fd);
         return true;
@@ -177,20 +169,12 @@ bool Gpio::setValue(unsigned int value)
         }
 
         if(value == LOW){
-            if(write(fd, "0", 2) != 2){
-                qDebug() << "ERROR: could not set edge interrupt";
-                close(fd);
-                return false;
-            }
+            write(fd, "0", 2);
             close(fd);
             return true;
         }
         if(value == HIGH){
-            if(write(fd, "1", 2) != 2){
-                qDebug() << "ERROR: could not set edge interrupt";
-                close(fd);
-                return false;
-            }
+            write(fd, "1", 2);
             close(fd);
             return true;
         }
@@ -273,29 +257,17 @@ bool Gpio::setEdgeInterrupt(int edge)
     }
 
     if(edge == EDGE_FALLING){
-        if(write(fd, "falling", 8) != 8){
-            qDebug() << "ERROR: could not set edge interrupt";
-            close(fd);
-            return false;
-        }
+        write(fd, "falling", 8);
         close(fd);
         return true;
     }
     if(edge == EDGE_RISING){
-        if(write(fd, "rising", 7) != 7){
-            qDebug() << "ERROR: could not set edge interrupt";
-            close(fd);
-            return false;
-        }
+        write(fd, "rising", 7);
         close(fd);
         return true;
     }
     if(edge == EDGE_BOTH){
-        if(write(fd, "both", 5) != 5){
-            qDebug() << "ERROR: could not set edge interrupt";
-            close(fd);
-            return false;
-        }
+        write(fd, "both", 5);
         close(fd);
         return true;
     }
