@@ -7,73 +7,30 @@ HOST='localhost'
 PORT=1234
 commandId=0
 
-methods = {'1': 'add_device',
-           '2': 'remove_device',
-           '3': 'list_configured_device_params',
-           '4': 'list_device_states',
-           '5': 'execute_action',
-           '6': 'add_rule',
-           '7': 'remove_rule',
-           '8': 'list_rule_detail',
-           '9': 'enable_disable_rule',
-           '10': 'list_vendors',
-           '11': 'list_configured_devices',
-           '12': 'list_deviceClasses',
-           '13': 'list_deviceClasses_by_vendor',
-           '14': 'list_rules',
-           '15': 'list_rules_containig_deviceId'}  
-
-
-def get_menu_selection():
-    print ""
-    print "----------------------------------------"
-    print "What do you want to do?"
-    print "----------------------------------------"
-    print ""
-    print "Devices --------------------------------"
-    print "     1  -> Add a new device"
-    print "     2  -> Remove a device"
-    print "     3  -> List device parameters"
-    print "     4  -> List device states"
-    print "     5  -> Execute an action"
-    print ""
-    print "Rules ----------------------------------"
-    print "     6  -> Add a new rule"
-    print "     7  -> Remove a rule"
-    print "     8  -> Rule details"
-    print "     9  -> Enable/Disable a rule"
-    print ""
-    print "Other ----------------------------------"
-    print "     10 -> List supported vendors"
-    print "     11 -> List configured devices"
-    print "     12 -> List supported devices"
-    print "     13 -> List supported devices by vendor"
-    print "     14 -> List configured rules"
-    print "     15 -> List rules containing a certain device"
-    print "----------------------------------------"
-    print ""
-    selection = raw_input("Enter selection: ")
-    n = 0
-    for i in methods.keys():
-        if i == selection:
-            return methods.values()[int(n)]
-        
-        n= n+1
-        
-    print "\nError in selection!"
-    return None
+methods = {'-> List supported vendors': 'list_vendors',
+           '-> List supported devices': 'list_deviceClasses',
+           '-> List configured devices': 'list_configured_devices',
+           '-> List configured device params': 'list_configured_device_params',
+           '-> Add device': 'add_device',
+           '-> Remove a device': 'remove_device',
+           '-> List supported devices by vendor': 'list_deviceClasses_by_vendor',
+           '-> Execute an action': 'execute_action',
+           '-> List device states': 'list_device_states',
+           '-> Add a rule': 'add_rule',
+           '-> List rules': 'list_rules',
+           '-> List rule details': 'list_rule_detail',
+           '-> List rules containing a certain device' : 'list_rules_containig_deviceId',
+           '-> Remove a rule': 'remove_rule'}
 
 
 def get_selection(title, options):
     print "\n\n", title
     for i in range(0,len(options)):
         print "%5i: %s" % (i, options[i])
-        
     selection = raw_input("Enter selection: ")
     if not selection:
 	print "\n   -> error in selection"
 	return None
-    
     return int(selection)
 
 
@@ -91,8 +48,6 @@ def send_command(method, params = None):
     response = json.loads(tn.read_until("\n}\n"))
     if response['status'] != "success":
         print "JSON error happened: %s" % response
-        return None
-    
     return response
 
 
@@ -105,7 +60,6 @@ def list_vendors():
     print "=== Vendors ==="
     for vendor in response['params']['vendors']:
         print "%40s  %s" % (vendor['name'], vendor['id'])
-        
     print "=== Vendors ==="
 
 
@@ -113,14 +67,12 @@ def select_vendor():
     vendors = get_vendors()['params']['vendors']
     if not vendors:
         print "\n    No vendors found. Please install guh-plugins and restart guhd."
-        return None
-    
+        return ""
     vendorList = []
     vendorIdList = []
     for i in range(0,len(vendors)):
         vendorList.append(vendors[i]['name'])
         vendorIdList.append(vendors[i]['id'])
-        
     selection = get_selection("Please select vendor", vendorList)
     if selection != None:
 	return vendorIdList[selection]
@@ -130,7 +82,6 @@ def get_deviceClasses(vendorId = None):
     params = {};
     if vendorId != None:
         params['vendorId'] = vendorId
-        
     return send_command("Devices.GetSupportedDevices", params)['params']['deviceClasses']
 
 def list_configured_device_params():
@@ -141,7 +92,6 @@ def list_configured_device_params():
     print "=== Params ==="
     for i in range(len(deviceParams)):
         print "%20s: %s" % (deviceParams[i]['name'], deviceParams[i]['value'])
-        
     print "=== Params ==="
 
 
@@ -150,7 +100,6 @@ def list_deviceClasses(vendorId = None):
     print "=== DeviceClasses ==="
     for deviceClass in response:
         print "%40s  %s" % (deviceClass['name'], deviceClass['id'])
-        
     print "=== DeviceClasses ==="
 
 
@@ -159,14 +108,12 @@ def select_deviceClass():
     deviceClasses = get_deviceClasses(vendorId)
     if len(deviceClasses) == 0:
         print "    No supported devices for this vendor"
-        return None
-    
+        return ""
     deviceClassList = []
     deviceClassIdList = []
     for i in range(0,len(deviceClasses)):
         deviceClassList.append(deviceClasses[i]['name'])
         deviceClassIdList.append(deviceClasses[i]['id'])
-        
     selection = get_selection("Please select device class", deviceClassList)
     if selection != None:
 	return deviceClassIdList[selection]
@@ -179,11 +126,9 @@ def select_configured_device():
     for device in devices:
         deviceList.append(device['name'])
         deviceIdList.append(device['id'])
-        
     selection = get_selection("Please select a device: ", deviceList)
     if selection != None:    
 	return deviceIdList[selection]
-    
     return None
 
 
@@ -213,7 +158,6 @@ def list_configured_devices():
     print "=== Configured Devices ==="
     for device in deviceList:
         print "Name: %40s, ID: %s, DeviceClassID: %s" % (device['name'], device['id'], device['deviceClassId'])
-        
     print "=== Configured Devices ==="
 
 
@@ -231,9 +175,8 @@ def read_params(paramTypes):
 	    param = {}
 	    param['name'] = paramType['name']
 	    param['value'] = paramValue
-	    
         params.append(param)
-
+    #print "got params:", params
     return params
 
 
@@ -242,7 +185,6 @@ def select_valueOperator():
     selection = get_selection("Please select an operator to compare this parameter: ", valueOperators)
     if selection != None:
         return valueOperators[selection]
-    
     return None
 
 
@@ -251,7 +193,6 @@ def select_stateOperator():
     selection = get_selection("Please select an operator to compare this state: ", stateOperators)
     if selection != None:
         return stateOperators[selection]
-    
     return None
   
 
@@ -265,7 +206,6 @@ def read_paramDescriptors(paramTypes):
         param['value'] = paramValue
         param['operator'] = operator
         params.append(param)
-        
     print "got params:", params
     return params
 
@@ -273,10 +213,11 @@ def read_paramDescriptors(paramTypes):
 def discover_device(deviceClassId = None):
     if deviceClassId == None:
         deviceClassId = select_deviceClass()
-        
     deviceClass = get_deviceClass(deviceClassId)
+
     params = {}
     params['deviceClassId'] = deviceClassId
+
     discoveryParams = read_params(deviceClass['discoveryParamTypes'])
     if len(discoveryParams) > 0:
         params['discoveryParams'] = discoveryParams
@@ -288,15 +229,12 @@ def discover_device(deviceClassId = None):
     for deviceDescriptor in response['params']['deviceDescriptors']:
         deviceDescriptorList.append("%s (%s)" % (deviceDescriptor['title'], deviceDescriptor['description']))
         deviceDescriptorIdList.append(deviceDescriptor['id'])
-        
     if not deviceDescriptorIdList:
-        print "\n    Timeout: no device found"
-        return None
-    
+        print "\n    No device found"
+        return -1
     selection = get_selection("Please select a device descriptor", deviceDescriptorList)
     if selection != None:
         return deviceDescriptorIdList[selection]
-
 
 
 def get_deviceClass(deviceClassId):
@@ -304,7 +242,6 @@ def get_deviceClass(deviceClassId):
     for deviceClass in deviceClasses:
         if deviceClass['id'] == deviceClassId:
             return deviceClass
-        
     return None
 
 
@@ -313,7 +250,6 @@ def get_device(deviceId):
     for device in devices:
         if device['id'] == deviceId:
             return device
-        
     return None
 
 
@@ -323,12 +259,6 @@ def get_actionType(actionTypeId):
     response = send_command("Actions.GetActionType", params)
     return response['params']['actionType']
 
-
-def get_eventType(eventTypeId):
-    params = {}
-    params['eventTypeId'] = eventTypeId
-    response = send_command("Events.GetEventType", params)
-    return response['params']['eventType']
 
 def add_configured_device(deviceClassId):
     deviceClass = get_deviceClass(deviceClassId)
@@ -340,7 +270,7 @@ def add_configured_device(deviceClassId):
     if len(deviceParams) > 0:
         params['deviceParams'] = deviceParams
 
-    print "add device command params:", params
+    print "adddevice command params:", params
     response = send_command("Devices.AddConfiguredDevice", params)
     print_device_error_code(response['params']['deviceError'])
 
@@ -385,16 +315,14 @@ def add_device():
     if deviceClassId == "":
         print "    Empty deviceClass. Can't continue"
         return
-    
     deviceClass = get_deviceClass(deviceClassId)
     print "createmethods are", deviceClass['createMethods']
     if "CreateMethodUser" in deviceClass['createMethods']:
         add_configured_device(deviceClassId)
     elif "CreateMethodDiscovery" in deviceClass['createMethods']:
         deviceDescriptorId = discover_device(deviceClassId)
-        if deviceDescriptorId == None:
+        if deviceDescriptorId == -1:
             return
-        
         add_discovered_device(deviceClassId, deviceDescriptorId)
     elif "CreateMethodAuto" in deviceClass['createMethods']:
         print "Can't create this device manually. It'll be created automatically when hardware is discovered."
@@ -407,7 +335,6 @@ def select_device():
     for i in range(len(devices)):
         deviceList.append(devices[i]['name'])
         deviceIdList.append(devices[i]['id'])
-        
     selection = get_selection("Please select a device", deviceList)
     if selection != None:
         return deviceIdList[selection]
@@ -425,14 +352,12 @@ def remove_device():
 def select_actionType(deviceClassId):
     actions = get_action_types(deviceClassId)
     if not actions:
-	return None
-    
+	return ""
     actionList = []
     print "got actions", actions
     for i in range(len(actions)):
         print "got actiontype", actions[i]
         actionList.append(actions[i]['name'])
-        
     selection = get_selection("Please select an action type:", actionList)
     return actions[selection]
 
@@ -440,12 +365,10 @@ def select_actionType(deviceClassId):
 def select_eventType(deviceClassId):
     eventTypes = get_eventTypes(deviceClassId)
     if not eventTypes:
-        return None
-    
+        return ""
     eventTypeList = []
     for i in range(len(eventTypes)):
         eventTypeList.append(eventTypes[i]['name'])
-        
     selection = get_selection("Please select an event type:", eventTypeList)
     return eventTypes[selection]
 
@@ -457,7 +380,6 @@ def execute_action():
     if actionType == "":
         print "\n    This device has no actions"
         return
-    
     actionTypeId = actionType['id']
     params = {}
     params['actionTypeId'] = actionTypeId
@@ -533,6 +455,7 @@ def print_rule_error_code(ruleError):
         print "\nERROR: Unknown error code: ", ruleError,  "Please take a look at the newest API version."
 
 
+
 def list_device_states():
     deviceId = select_device()
     device = get_device(deviceId)
@@ -542,9 +465,10 @@ def list_device_states():
         params = {}
         params['deviceId'] = deviceId
         params['stateTypeId'] = deviceClass['stateTypes'][i]['id']
+
         response = send_command("Devices.GetStateValue", params)
+        #print_device_error_code(response['params']['deviceError'])
         print "%s: %s" % (deviceClass['stateTypes'][i]['name'], response['params']['value'])
-        
     print "=== States ==="
 
 
@@ -562,12 +486,12 @@ def create_eventDescriptors():
         eventDescriptor['eventTypeId'] = eventType['id']
         if len(params) > 0:
             eventDescriptor['paramDescriptors'] = params
-            
+
         eventDescriptors.append(eventDescriptor)
+
         input = raw_input("Do you want to add another EventDescriptor? (y/N): ")
         if not input == "y":
             enough = True
-            
     print "got eventDescriptors:", eventDescriptors
     return eventDescriptors
 
@@ -602,93 +526,79 @@ def create_actions():
         action['actionTypeId'] = actionType['id']
         if len(params) > 0:
             action['params'] = params
-            
+
         actions.append(action)
+
         input = raw_input("Do you want to add another action? (y/N): ")
         if not input == "y":
             enough = True
-            
+    #print "got actions:", actions
     return actions
 
 
 def add_rule():
-    params = {}
-    params['eventDescriptorList'] = create_eventDescriptors()
-    if len(params['eventDescriptorList']) > 1:
-        params['stateEvaluator'] = select_stateOperator()
-        
-    params['actions'] = create_actions()
-    print "adding rule with params:", params
-    response = send_command("Rules.AddRule", params)
-    print_rule_error_code(response['params']['ruleError'])
-
-
-def enable_disable_rule():
-    ruleId = select_rule()
-    if ruleId == "":
-        print "\n    No rules found"
-        return
-    
-    actionTypes = ["enable", "disable"]
-    selection = get_selection("What do you want to do with this rule: ", actionTypes)     
-    if selection == 0:
+    ruleType = select_rule_type()
+    if ruleType == "EventBasedRule":
 	params = {}
-	params['ruleId'] = ruleId
-	response = send_command("Rules.EnableRule", params)
+	#params['name'] = raw_input("Please enter the name of the rule: ")
+	params['eventDescriptor'] = create_eventDescriptor()
+	params['actions'] = create_actions()
+	print "adding rule with params:", params
+        response = send_command("Rules.AddRule", params)
         print_rule_error_code(response['params']['ruleError'])
-    else:
-	params = {}
-	params['ruleId'] = ruleId
-	response = send_command("Rules.DisableRule", params)
+    elif ruleType == "StateBasedRule":
+        params = {}
+        params['eventDescriptorList'] = create_eventDescriptors()
+        if len(params['eventDescriptorList']) > 1:
+            params['stateEvaluator'] = select_stateOperator()
+        params['actions'] = create_actions()
+        print "adding rule with params:", params
+        response = send_command("Rules.AddRule", params)
         print_rule_error_code(response['params']['ruleError'])
+    elif ruleType == "MixedRule":
+	print "not implemented yet in this script...comming soon ;)"
+    else: 
+	print "    No rule added";
 
 
-def get_rule_status(ruleId):
-    params = {}
-    params['ruleId'] = ruleId
-    response = send_command("Rules.GetRuleDetails", params)
-    if response['params']['rule']['enabled'] == True:
-	return "enabled"
-    else:
-	return "disabled"
+def select_rule_type():
+    ruleTypes = ["EventBasedRule", "StateBasedRule", "MixedRule"]
+    selection = get_selection("Please select a rule type: ", ruleTypes)     
+    return ruleTypes[selection]
+
 
 def list_rules():
     response = send_command("Rules.GetRules", {})
     if not response['params']['ruleIds']:
         print "\n    No rules found."
-        return None
-    
+        return
     print "\nRules found:"
     for i in range(len(response['params']['ruleIds'])):
-	ruleId = response['params']['ruleIds'][i]
-	params = {}
-	params['ruleId'] = ruleId
-	ruleDetail = send_command("Rules.GetRuleDetails", params)
-	#print ruleDetail
-	print response['params']['ruleIds'][i], "(", get_rule_status(ruleId), ")"
+        print response['params']['ruleIds'][i]
 
 
 def list_rule_detail():
     ruleId = select_rule()
     if ruleId == "":
         print "\n    No rules found"
-        return None
-    
+        return
     params = {}
     params['ruleId'] = ruleId
     response = send_command("Rules.GetRuleDetails", params)
     print response
-    print "\nDetails for rule", ruleId, "which currently is", get_rule_status(ruleId) 
-    print "\nEvents ->", get_stateEvaluator_text(response['params']['rule']['stateEvaluator']['operator']), ":"
+    print "\nThe rule", ruleId, "depends on following EventDescriptors and triggers"
+    print "only if ", get_stateEvaluator_text(response['params']['rule']['stateEvaluator']['operator']), "are true.\n"
+    print "Events:"
     for i in range(len(response['params']['rule']['eventDescriptors'])):
         eventDescriptor = response['params']['rule']['eventDescriptors'][i]
+        #print eventDescriptor
         device = get_device(eventDescriptor['deviceId'])
-        eventType = get_eventType(eventDescriptor['eventTypeId'])
         paramDescriptors = eventDescriptor['paramDescriptors']
-        print  "%5s. -> %40s -> eventTypeId: %10s: " %(i, device['name'], eventType['name'])
+        print  "%5s. -> %40s -> eventTypeId: %10s: " %(i, device['name'], eventDescriptor['eventTypeId'])
+        #print paramDescriptors
         for i in range(len(paramDescriptors)):
             print "%58s %s %s" %(paramDescriptors[i]['name'], get_valueOperator_symbol(paramDescriptors[i]['operator']), paramDescriptors[i]['value'])
-
+        print ""
     print "\nActions:"
     for i in range(len(response['params']['rule']['actions'])):
         action = response['params']['rule']['actions'][i]
@@ -698,7 +608,7 @@ def list_rule_detail():
         print  "%5s. ->  %40s -> action: %s" %(i, device['name'], actionType['name'])
         for i in range(len(actionParams)):
             print "%61s: %s" %(actionParams[i]['name'], actionParams[i]['value'])
-      
+        print ""    
 
 def get_valueOperator_symbol(valueOperator):
     if valueOperator == "ValueOperatorEquals":
@@ -718,9 +628,9 @@ def get_valueOperator_symbol(valueOperator):
     
 def get_stateEvaluator_text(stateEvaluator):
     if stateEvaluator == "StateOperatorAnd":
-        return "(AND) | ALL of the events/states has to be true/emited."
+        return "ALL of the events/states"
     elif stateEvaluator == "StateOperatorOr":
-        return "(OR) | ONE of the events/states has to be true/emited."
+        return "ONE of this events/states"
     else:
         return "<unknown state evaluator>"
     
@@ -733,8 +643,7 @@ def list_rules_containig_deviceId():
     response = send_command("Rules.FindRules", params)
     if not response['params']['ruleIds']:
         print "\nThere is no rule containig this device."
-        return None
-    
+        return
     print "\nFollowing rules contain this device"
     for i in range(len(response['params']['ruleIds'])):
         print "Device ", deviceId, "found in rule", response['params']['ruleIds'][i]
@@ -743,8 +652,7 @@ def list_rules_containig_deviceId():
 def select_rule():
     ruleIds = send_command("Rules.GetRules", {})['params']['ruleIds']
     if not ruleIds:
-        return None
-    
+        return ""
     selection = get_selection("Please select rule:", ruleIds)
     if selection != None:
 	return ruleIds[selection]
@@ -753,17 +661,13 @@ def select_rule():
 def remove_rule():
     ruleId = select_rule()
     if ruleId == "":
-        print "\nNo rule found"
-        return None
-    
+        print "\nNo rules found"
+        return
     params = {}
     params['ruleId'] = ruleId
     response = send_command("Rules.RemoveRule", params)
     print "removeRule response", response
 
-
-
-############################################################################################
 import sys
 
 if len(sys.argv) > 1:
@@ -776,10 +680,11 @@ packet = json.loads(packet)
 print "connected to", packet["server"], "\nserver version:", packet["version"], "\nprotocol version:", packet["protocol version"], "\n"
 
 while True:
-    method = get_menu_selection()
-    if method != None:
-        #print "call method: ", method
-        methodCall = globals()[method]
-	methodCall()
+    selection = get_selection("What do you want to do?", methods.keys())
+    if selection != None:
+	selectionKey = methods.keys()
+	methodName = methods[methods.keys()[selection]]
+	methodToCall = globals()[methods[methods.keys()[selection]]]
+	methodToCall()
 
 
